@@ -8,34 +8,33 @@
 <style>
 *{box-sizing:border-box}
 body{
- margin:0;background:#090f1c;color:white;
- font-family:Arial,sans-serif;padding:18px
+ margin:0;padding:16px;background:#090f1c;
+ color:white;font-family:Arial,sans-serif
 }
-header{text-align:center;padding:20px 0}
-h1{color:#32d6ff;font-size:28px}
+header{text-align:center;padding:20px}
+h1{color:#27d5ff;font-size:30px}
 .sub{color:#9baac0}
 .card{
  background:#151f30;border:1px solid #293b53;
  border-radius:15px;padding:17px;margin:15px 0
 }
-h3{color:#32d6ff;margin-top:0}
-.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+h3{color:#27d5ff}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .stat{
- background:#202d40;padding:15px;border-radius:12px;
+ background:#202d40;padding:14px;border-radius:12px;
  text-align:center
 }
-.stat strong{display:block;color:#35d7ff;font-size:25px;margin-top:8px}
+.stat strong{
+ display:block;color:#35d7ff;font-size:23px;margin-top:9px
+}
 input,button{
  width:100%;padding:14px;border-radius:10px;
- border:0;font-size:16px;margin-top:10px
+ margin-top:10px;font-size:16px
 }
 input{background:#0b1422;color:white;border:1px solid #40516a}
-button{background:#087fae;color:white;font-weight:bold}
-.results{display:flex;flex-wrap:wrap;gap:9px}
-.result{
- background:#26364b;padding:12px;border-radius:9px;
- font-weight:bold;color:#50e3b0
-}
+button{border:0;background:#087fae;color:white;font-weight:bold}
+.results{display:flex;flex-wrap:wrap;gap:8px}
+.result{padding:11px;background:#26364b;border-radius:9px;color:#50e3b0}
 .low{color:#ff9c70}
 .bar{height:12px;background:#26364b;border-radius:10px;overflow:hidden}
 .fill{height:100%;background:#20c9ec;width:0%}
@@ -47,12 +46,12 @@ footer{text-align:center;color:#718198;padding:20px}
 
 <header>
 <h1>ALI AI CRASH</h1>
-<div class="sub">نظام تحليل إحصائي للجولات السابقة</div>
+<div class="sub">لوحة التحليل الإحصائي</div>
 </header>
 
 <div class="card">
-<h3>لوحة التحليل</h3>
-<div class="stats">
+<h3>إحصائيات الجولات</h3>
+<div class="grid">
 <div class="stat">عدد الجولات<strong id="count">0</strong></div>
 <div class="stat">المتوسط<strong id="avg">0.00x</strong></div>
 <div class="stat">أعلى نتيجة<strong id="max">0.00x</strong></div>
@@ -61,32 +60,35 @@ footer{text-align:center;color:#718198;padding:20px}
 </div>
 
 <div class="card">
-<h3>إضافة نتيجة جولة</h3>
-<input id="number" type="number" step="0.01" min="1" placeholder="أدخل المعامل مثال 1.57">
+<h3>إضافة نتيجة سابقة</h3>
+<input id="number" type="number" min="1" step="0.01"
+placeholder="مثال: 1.57">
 <button onclick="addResult()">إضافة النتيجة</button>
 </div>
 
 <div class="card">
-<h3>تحليل النتائج السابقة</h3>
-<p>النتائج الأقل من 2x: <strong id="low">0</strong></p>
-<p>النتائج 2x فأكثر: <strong id="high">0</strong></p>
+<h3>التحليل الإحصائي</h3>
+<p>أقل من 2x: <strong id="low">0</strong></p>
+<p>من 2x فأكثر: <strong id="high">0</strong></p>
 <p>نسبة النتائج الأقل من 2x:</p>
 <div class="bar"><div class="fill" id="progress"></div></div>
+<p class="note" id="analysis">أدخل النتائج لبدء التحليل.</p>
 </div>
 
 <div class="card">
-<h3>سجل الجولات</h3>
-<div class="results" id="results">
-<p class="note">أضف نتائج الجولات لعرضها هنا.</p>
-</div>
-<button onclick="clearResults()" style="background:#9b3545">مسح السجل</button>
+<h3>سجل النتائج</h3>
+<div class="results" id="results"></div>
+<button onclick="clearResults()" style="background:#9b3545">
+مسح السجل
+</button>
 </div>
 
 <div class="card">
 <h3>معلومات النظام</h3>
 <p class="note">
-هذا النظام يحسب الإحصائيات اعتماداً على النتائج التي تدخلها.
-النتائج السابقة لا تكشف نتيجة الجولة القادمة، ولا توجد نسبة توقع مضمونة.
+يعرض النظام إحصائيات الجولات التي تدخلها.
+النتائج السابقة لا تضمن معرفة نتائج الجولات القادمة.
+المؤشرات إحصائية وليست إشارات مراهنة.
 </p>
 </div>
 
@@ -94,15 +96,20 @@ footer{text-align:center;color:#718198;padding:20px}
 
 <script>
 let data=[];
+try{
+ data=JSON.parse(localStorage.getItem('aliResults')||'[]');
+ if(!Array.isArray(data)) data=[];
+}catch(e){data=[];}
 
 function addResult(){
  const input=document.getElementById('number');
  const value=Number(input.value);
  if(!Number.isFinite(value)||value<1){
-  alert('أدخل معامل صحيح يبدأ من 1');
+  alert('أدخل نتيجة صحيحة');
   return;
  }
  data.unshift(value);
+ localStorage.setItem('aliResults',JSON.stringify(data));
  input.value='';
  update();
 }
@@ -115,15 +122,20 @@ function update(){
 
  document.getElementById('count').textContent=n;
  document.getElementById('avg').textContent=
-  n?(sum/n).toFixed(2)+'x':'0.00x';
+ n?(sum/n).toFixed(2)+'x':'0.00x';
  document.getElementById('max').textContent=
-  n?Math.max(...data).toFixed(2)+'x':'0.00x';
+ n?Math.max(...data).toFixed(2)+'x':'0.00x';
  document.getElementById('min').textContent=
-  n?Math.min(...data).toFixed(2)+'x':'0.00x';
+ n?Math.min(...data).toFixed(2)+'x':'0.00x';
  document.getElementById('low').textContent=low;
  document.getElementById('high').textContent=high;
- document.getElementById('progress').style.width=
-  n?(low/n*100)+'%':'0%';
+
+ const percentage=n?low/n*100:0;
+ document.getElementById('progress').style.width=percentage+'%';
+
+ document.getElementById('analysis').textContent=n?
+ 'تم تحليل '+n+' جولة. هذه إحصائيات تاريخية وليست توقعاً للجولة القادمة.':
+ 'أدخل النتائج لبدء التحليل.';
 
  const box=document.getElementById('results');
  box.innerHTML='';
@@ -136,11 +148,13 @@ function update(){
 }
 
 function clearResults(){
- if(confirm('هل تريد مسح جميع النتائج؟')){
+ if(confirm('هل تريد مسح السجل؟')){
   data=[];
+  localStorage.removeItem('aliResults');
   update();
  }
 }
+update();
 </script>
 </body>
 </html>
